@@ -1,0 +1,74 @@
+<apex:page >
+<!--  <apex:page showHeader="false" sidebar="false" standardController="Contact" extensions="CntNearByAccount">  -->
+<!--  <head>  -->
+<!--  <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> -->
+<!--  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> -->
+    <!--  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>  -->
+    <!--  <script type="text/javascript">
+//	    function RemoveBad(strTemp) { 
+//    	    strTemp = strTemp.replace(/\<|\\|\/|\>|\"|\'|\{|\}|\%|\=|\;|\:|\(|\)|\&|\+|\-/g,"");
+//	    	return strTemp;
+//		}
+    
+//          function initialize() {
+//               var request = {
+//                		  address: '{!RemovedScriAddr}'
+//                		  address: RemoveBad('{!JSENCODE(Contact.MailingPostalCode)}' + ' ' + '{!JSENCODE(Contact.MailingState)}' + ' ' + '{!JSENCODE(Contact.MailingCity)}' + ' ' + '{!JSENCODE(Contact.MailingStreet)}')
+//                        address: '{!Contact.MailingPostalCode} + {!Contact.MailingState} + {!Contact.MailingCity} + {!Contact.MailingStreet}'
+//                }; 
+//                var requestdefault = { 
+//						address: '{!DefaultMaddr}'
+//                };  
+//                var ACgeocoder = new google.maps.Geocoder();
+//                ACgeocoder.geocode(request, function(results, status) {
+//                    if (status == google.maps.GeocoderStatus.OK) {
+//                           var fenway = results[0].geometry.location;
+//                           var mapOptions = {
+//                             center: fenway,
+//                             zoom: 14,
+//                             mapTypeId: google.maps.MapTypeId.SATELLITE
+//                           };
+//                           var map = new google.maps.Map(document.getElementById("pano"), mapOptions);
+//                           var panoramaOptions = {
+//                             position: fenway,
+//                             pov: {
+//                               heading: 34,
+//                               pitch: 10,
+//                               zoom: 1
+//                             }
+//                           };
+//                           var panorama = new google.maps.StreetViewPanorama(document.getElementById("pano"), panoramaOptions);
+//                           map.setStreetView(panorama);
+//                    } else {
+//                    	ACgeocoder.geocode(requestdefault, function(results, status) {
+//                    	   if (status == google.maps.GeocoderStatus.OK) {
+//	                           var fenway = results[0].geometry.location;
+//	                           var mapOptions = {
+//	                             center: fenway,
+//	                             zoom: 14,
+//	                             mapTypeId: google.maps.MapTypeId.SATELLITE
+//	                           };
+//	                           var map = new google.maps.Map(document.getElementById("pano"), mapOptions);
+//	                           var panoramaOptions = {
+//	                             position: fenway,
+//	                             pov: {
+//	                               heading: 34,
+//	                               pitch: 10,
+//	                               zoom: 1
+//	                             }
+//	                           };
+//	                           var panorama = new google.maps.StreetViewPanorama(document.getElementById("pano"), panoramaOptions);
+//	                           map.setStreetView(panorama);
+//                           } else {
+//                           	   alert('What');
+//                           }
+//                		});                    	
+//                    }
+//                });
+//         }
+</script>  -->
+<!-- </head>  -->
+<!-- <body onload="initialize()">  -->
+<!-- <div id="pano" style="height:400px;width:100%;"></div>  -->  
+<!-- </body>  -->
+</apex:page>
