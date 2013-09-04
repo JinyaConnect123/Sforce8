@@ -1,0 +1,175 @@
+<apex:page standardController="Lead__c" extensions="BookingEstimateItemSetup" showHeader="false"
+	sidebar="false" tabstyle="BookingEstimateItem__c">
+
+
+<apex:actionStatus onstart="javascript:blockUi();" onstop="unblockUi();" id="refStatusBlock"/>
+<apex:form id="setupForm" >
+<apex:pageblock title="見積明細" id="BookEstItemBlock">
+<apex:pageMessages />
+
+    <apex:pageBlockButtons >
+    	<apex:commandButton value="確定" action="{!upsertData}" 
+    	reRender="setupForm" status="refStatusBlock" oncomplete="bindEvents()" 
+    	style="color: #ffffff; background-color: #ff0000; background-image: url({!URLFOR($Resource.reportFiles, 'img/blank')}); width: 100px"/>
+    	<input type="button" onclick="window.top.close()" value="閉じる" style="width: 100px"/>
+    </apex:pageBlockButtons>
+
+    <apex:outputPanel layout="block" style="overflow:auto; " id="BookEstPanel" >
+    <apex:pageBlockTable value="{!oBookEstLst}" var="t" id="BookEstTable">
+
+	 	<apex:column headerValue="アクション" footerClass="totalRowCenCell">
+			<input type="button" title="クリア" value="クリア" id="clearProduct" rowIndex="{!t.index}" />
+		</apex:column>
+
+	 	<!-- 商品コード -->
+        <apex:column headerValue="{!$ObjectType.BookingEstimateItem__c.Fields.refAccountMaster__c.label}">
+        		<span class="lookupInput">
+        		<!-- 
+                <input type="text" value="{!t.productNm}" id=":BookEstTable:{!t.index}:productName"
+                    readonly="readonly" style="background-color:#f1f1f1; background-image: url({!URLFOR($Resource.reportFiles, 'img/blank')});" /> -->
+                <apex:inputText value="{!t.productNm}" id="productName" maxlength="80" size="40"/>
+                <img title="" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';"
+	              onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';"
+	              onfocus="this.className = 'lookupIconOn';"
+	              onblur="this.className = 'lookupIcon';"
+	              class="lookupIcon" alt="" src="/s.gif" style="cursor: pointer;"
+	              name="productPopup"
+	              rowIndex = "{!t.index}" />
+	          	</span>
+              <apex:inputHidden value="{!t.sobj.refAccountMaster__c}" id="hidProductId" />
+              <apex:inputHidden value="{!t.orgProductNm}" id="hidProductNm" />
+        </apex:column>
+
+		<!-- 単価-->
+        <apex:column headerValue="{!$ObjectType.BookingEstimateItem__c.Fields.UnitPrice__c.label}" >
+            <apex:inputField value="{!t.sobj.UnitPrice__c}" id="price" />
+        </apex:column>
+
+		<!-- 数量-->
+        <apex:column headerValue="{!$ObjectType.BookingEstimateItem__c.Fields.Amount__c.label}" >
+            <apex:inputText value="{!t.prodNums}" id="orderNums" maxlength="8"/>
+        </apex:column>
+
+		<!-- 合計金額(税抜)-->
+        <apex:column headerValue="{!$ObjectType.BookingEstimateItem__c.Fields.GoukeinoneTax__c.label}"
+        	style="text-align: right; background-color: #FFEBCD;">
+			<apex:outputText value="{0,number,#,###}" id="amoutPriceExcTax" rendered="{!t.isValidata}">
+			<apex:param value="{!t.amoutExcTax}" />
+			</apex:outputText>
+        </apex:column>
+
+		<!-- 消費税 -->
+        <apex:column headerValue="{!$ObjectType.BookingEstimateItem__c.Fields.TaxRate__c.label}" style="text-align: right; ">
+			<apex:outputField value="{!t.sobj.TaxRate__c}" id="taxRateType"/>
+			<apex:inputHidden value="{!t.sobj.TaxRate__c}" id="hidTaxRateType" />
+        </apex:column>
+        <!-- サービス料 -->
+        <apex:column headerValue="{!$ObjectType.BookingEstimateItem__c.Fields.ServiceRate__c.label}" style="text-align: right; ">
+			<apex:outputField value="{!t.sobj.ServiceRate__c}" id="serviceRate"/>
+			<apex:inputHidden value="{!t.sobj.ServiceRate__c}" id="hidServiceRate" />
+        </apex:column>
+        <!-- 特別税 -->
+        <apex:column headerValue="{!$ObjectType.BookingEstimateItem__c.Fields.SpecialTax__c.label}" style="text-align: right; ">
+
+            <apex:outputText value="{0,number,#,###}" id="specialTax">
+                <apex:param value="{!t.specialTax}" />
+            </apex:outputText>
+			<apex:inputHidden value="{!t.sobj.SpecialTax__c}" id="hidSpecialTax" />
+			<apex:inputHidden value="{!t.sobj.ActionType__c}" id="hidActionType" />
+        </apex:column>
+        <!-- 合計金額(税込) -->
+        <apex:column headerValue="合計金額(税込)" style="text-align: right; background-color: #FFEBCD;"
+        	footerClass="totalRowNumCell">
+			<apex:outputText value="{0,number,#,###}" id="amoutPriceIncTax" rendered="{!t.isValidata}">
+				<apex:param value="{!t.amoutIncTax}" />
+			</apex:outputText>
+        </apex:column>
+
+
+	</apex:pageBlockTable>
+    </apex:outputPanel>
+
+</apex:pageblock>
+</apex:form>
+
+<!-- Script Define -->
+<apex:includeScript value="{!URLFOR($Resource.queryfiles, 'js/jquery.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.queryfiles, 'js/jquery.blockUI.js')}"/>
+<apex:includeScript value="{!$Resource.CommJs}"/>
+
+<script>
+$=jQuery.noConflict();
+var currRowIndex = 0;
+function bindEvents() {
+    // 数量入力は数字以外は入力不可の制御
+    $("input[name$=':orderNums']").keyup(function(){
+        $(this).val($(this).val().replace(/[^\d]/g,''));
+    }).bind("paste",function(){
+        $(this).val($(this).val().replace(/[^\d]/g,''));
+    }).css("ime-mode", "disabled");
+
+    // clear the one row info
+    var clearItemIdArr=new Array(':hidProductId',':hidProductNm',
+        ':productName',':price',':orderNums',
+        ':amoutPriceExcTax',':discountNum',':amoutPriceIncTax',
+        ':InvoiceNoShowFlg',
+        ':taxRateType', ':hidTaxRateType', ':serviceRate', ':hidServiceRate', ':specialTax', ':hidSpecialTax', 'hidActionType');
+    // Clear Button
+    $("input[id='clearProduct']").click(function() {
+        currRowIndex = $(this).attr("rowindex");
+        for (var i = 0; i < clearItemIdArr.length; i++){
+            clearObj = $("[id$=':BookEstTable:" + currRowIndex + clearItemIdArr[i] + "']");
+            if (clearObj.is(":checkbox")) {
+                clearObj.removeAttr('checked');
+            } else if (clearObj.is("select")) {
+                clearObj.get(0).selectedIndex = 0;
+            } else if (clearObj.is("span")) {
+                clearObj.text("");
+            } else {
+                clearObj.val("");
+            }
+        }
+    });
+
+    $("img[name='productPopup']").click(function() {
+        currRowIndex = $(this).attr("rowindex");
+        // 引き渡し値を設定して、選択画面を開く
+        ctrlNm = $("input:text[id$=':" + currRowIndex + ":productName']").get(0);
+        ctrlId = $("input:hidden[id$=':" + currRowIndex + ":hidProductId']").get(0);
+        ctrlHidNm = $("input:hidden[id$=':" + currRowIndex + ":hidProductNm']").get(0);
+        ctrlPriceId = $("[id$=':" + currRowIndex + ":price']").get(0);
+        ctrlOrderNumId = $("[id$=':" + currRowIndex + ":orderNums']").get(0);
+        ctrlTaxRate = $("span[id$=':" + currRowIndex + ":taxRateType']").get(0);
+        ctrlHidTaxRate = $("input:hidden[id$=':" + currRowIndex + ":hidTaxRateType']").get(0);
+        ctrlServiceTaxRate = $("span[id$=':" + currRowIndex + ":serviceRate']").get(0);
+        ctrlHidServiceTaxRate = $("input:hidden[id$=':" + currRowIndex + ":hidServiceRate']").get(0);
+        ctrlSpecialTax = $("span[id$=':" + currRowIndex + ":specialTax']").get(0);
+        ctrlHidSpecialTax = $("input:hidden[id$=':" + currRowIndex + ":hidSpecialTax']").get(0);
+        ctrlHidActionType = $("input:hidden[id$=':" + currRowIndex + ":hidActionType']").get(0);
+        var openUrl = "/apex/ProductSearch?idx=" + currRowIndex;
+        // 呼び出し順番とPOPUP画面の設定順番は必ず一致するが必要
+        objs = new Array(ctrlNm, ctrlId, ctrlHidNm, ctrlPriceId, ctrlOrderNumId,
+            ctrlTaxRate, ctrlHidTaxRate, ctrlServiceTaxRate, ctrlHidServiceTaxRate, ctrlSpecialTax, ctrlHidSpecialTax, ctrlHidActionType);
+        commUtils.popup(openUrl, "SearchProductInfo", objs, null, null, window.popupCallback);
+    });
+}
+// 商品設定後の自動CallBack機能
+function popupCallback() {    // 項目自動クリア
+    
+}
+function blockUi(formobj) {
+    $("form[id$=':setupForm']").block({
+         message: '<h1><img src="{!URLFOR($Resource.queryfiles, 'css/blockui/busy.gif')}" /> Processing...</h1>'
+    });
+    return true;
+}
+// Lock解除
+function unblockUi () {
+    $("form[id$=':batchProcess']").unblock();
+}
+$(document).ready(function() {
+    bindEvents();
+});
+</script>
+
+</apex:page>
