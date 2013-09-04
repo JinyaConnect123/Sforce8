@@ -1,1 +1,0 @@
-<apex:page standardController="Lead__c" extensions="CustomButtonCon" showHeader="false" sidebar="false" action="{!ViewRmAssNoon}" />

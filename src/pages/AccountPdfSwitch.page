@@ -1,1 +1,0 @@
-<apex:page standardcontroller="AccountAcount__c" extensions="AccountPdfSwitch" action="{!redirect}" />
